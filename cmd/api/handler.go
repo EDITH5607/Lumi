@@ -9,10 +9,13 @@ import (
 
 
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	data := map[string]string{
+	data := envelope{
 		"status":"available",
+		"system_info":map[string]string{
 		"Environment":app.config.env,
 		"version": version,
+		},
+
 	}
 
 	err := app.writeJSON(data,w,http.StatusOK, nil) 
@@ -44,7 +47,7 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 		Genres: []string{"drama", "romance", "war"},
 		Version :1,
 	}
-	err = app.writeJSON(movie, w, http.StatusOK, nil)
+	err = app.writeJSON(envelope{"movie":movie}, w, http.StatusOK, nil)
 	if err!=nil {
 		app.logger.Println(err)
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
