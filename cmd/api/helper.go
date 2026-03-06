@@ -10,6 +10,8 @@ import (
 )
 
 
+type envelope map[string]any
+
 func (app *application) readIDParams(r *http.Request) (int64, error) {
 	// returns a params slice(with elements as struct) with |key1,value1|key2,value2|...
 	params := httprouter.ParamsFromContext(r.Context())
@@ -21,8 +23,8 @@ func (app *application) readIDParams(r *http.Request) (int64, error) {
 	return id,nil
 }
 
-func (app *application) writeJSON(data any,w http.ResponseWriter, status int, headers http.Header)  error{
-	//marshall return a byte array and an error
+func (app *application) writeJSON(data envelope,w http.ResponseWriter, status int, headers http.Header)  error{
+	//marshall return a byte array and an error , MarshalIndent , no line prefix and tab indent for each element
 	js, err := json.Marshal(data)
 	if err!=nil {
 		return err
