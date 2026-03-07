@@ -8,7 +8,7 @@ type Movie struct {
 	CreatedAt time.Time	`json:"-"`	// "-" always remove that struct field from the json 
 	Title string		`json:"title"`
 	Year int32			`json:"year,omitempty"`
-	Runtime int32		`json:"runtime,omitempty,string"` // this will convert the output of json as string rather than int
+	Runtime Runtime		`json:"runtime,omitempty,string"` // this will convert the output of json as string rather than int
 	Genres []string		`json:"genres,omitempty"` // omitempty only works if the struct field doesnt have any value or value is "", false, 0
 	Version int32		`json:"version"`
 
