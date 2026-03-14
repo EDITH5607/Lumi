@@ -11,5 +11,4 @@ type Movie struct {
 	Runtime Runtime		`json:"runtime,omitempty,string"` // this will convert the output of json as string rather than int
 	Genres []string		`json:"genres,omitempty"` // omitempty only works if the struct field doesnt have any value or value is "", false, 0
 	Version int32		`json:"version"`
-
 }
