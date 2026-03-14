@@ -1,20 +1,25 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
-
+	_ "github.com/lib/pq"
 )
-
+ // _ in import used to o stop the Go compiler complaining that the package isn't being used.
 const version = "1.0.0"
 
 type config struct {
 	port int
 	env string
+	db struct {
+		dsn string	
+	}
 }
 
 type application struct {
@@ -28,6 +33,7 @@ func main() {
 	var cfg config
 	flag.IntVar(&cfg.port,"Port", 4000,"API Server Port")
 	flag.StringVar(&cfg.env, "env", "development","Environment (development|staging|production)")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("LUMI_DB_DSN"), "PostgresSQL DSN")
 	flag.Parse()	
 
 	logger := log.New(os.Stdout, "INFO: ", log.Ldate | log.Ltime)
@@ -35,6 +41,14 @@ func main() {
 		config: cfg,
 		logger: logger,
 	}
+
+	db, err := openDB(cfg)
+	if err!=nil {
+		logger.Fatal(err)
+	}
+	defer db.Close()
+
+	logger.Println("Database connection pool Established Successfully!!")
 
 
 
@@ -48,7 +62,25 @@ func main() {
 	}
 
 	logger.Printf("Start %s Server on port: %d ",cfg.env,cfg.port)
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	logger.Fatal(err)
 	
+}
+
+func openDB(cfg config) (*sql.DB, error) {
+	db, err := sql.Open("postgres",cfg.db.dsn)
+	if err != nil {
+		return nil, err
+	}
+	// creating a root context(parent) and give it a signal like timeout when 5 seconds over..
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// cancel the context when the fn returns 
+	defer cancel()
+
+	// ping to the db with a fixed time so that we know db is working or not
+	err = db.PingContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }
