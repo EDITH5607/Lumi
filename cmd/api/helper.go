@@ -9,6 +9,12 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+// for json reponse making use json encoding and json marshal()
+// json marshal() use more memory and can be customized 
+// json encode use less memory and high performace but customization is not possible(not so flexible)
+
+
+
 
 type envelope map[string]any
 
@@ -40,6 +46,5 @@ func (app *application) writeJSON(data envelope,w http.ResponseWriter, status in
 	w.Header().Set("Content-Type","application/json")
 	w.WriteHeader(status)
 	w.Write(js)
-
 	return nil
 }
