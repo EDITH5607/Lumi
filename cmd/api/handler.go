@@ -2,6 +2,7 @@ package main
 
 import (
 	"Green/internal/data"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -27,7 +28,22 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create movie handler!!!")
+
+	var input struct {
+		Title string `json:"title"`
+		Year int32	`json:"year"`
+		Runtime int32	`json:"runtime"`
+		Genres []string 	`json:"genres"`
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err!= nil {
+		// we use err.Error() because err is a interface we need to call the function to get the err string
+		app.errorResponse(w,r,http.StatusBadRequest, err.Error())
+		return
+	} 
+
+	fmt.Fprintf(w,"%v\n",input)
 
 }
 
