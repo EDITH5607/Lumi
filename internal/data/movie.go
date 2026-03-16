@@ -1,6 +1,9 @@
 package data
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
 
 
 type Movie struct {
@@ -11,4 +14,26 @@ type Movie struct {
 	Runtime Runtime		`json:"runtime,omitempty,string"` // this will convert the output of json as string rather than int
 	Genres []string		`json:"genres,omitempty"` // omitempty only works if the struct field doesnt have any value or value is "", false, 0
 	Version int32		`json:"version"`
+}
+
+
+// struct contain the db instance and methods 
+type MovieModel struct {
+	db *sql.DB
+}
+
+func (m *MovieModel)Insert(movie *Movie) error{
+	return nil
+}
+
+func (m *MovieModel) Get(id int64) (*Movie, error) {
+	return nil,nil
+}
+
+func (m *MovieModel) Update(movie *Movie) error {
+	return nil
+}
+
+func (m *MovieModel) Delete(id int64) error {
+	return nil
 }
