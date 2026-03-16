@@ -20,6 +20,9 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request,sta
 }
 
 
+// error is an interface if you pass the err to the fmt.log,fmt.print it will automatically 
+// call the interface funtion inside the object string() or Error() , 
+// if we need to pass the string of the error we need to call the err.Error() method
 func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 	message := "the server encountered a problem and could not process your request"
