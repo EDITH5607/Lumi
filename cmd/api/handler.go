@@ -52,3 +52,11 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 }
+
+func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request){
+	w.Write([]byte("Update movie Handler!!"))
+}
+
+func(app *application)deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("delete Movie Handler !!"))
+}
