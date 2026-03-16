@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Green/internal/data"
 	"context"
 	"database/sql"
 	"flag"
@@ -9,9 +10,11 @@ import (
 	"net/http"
 	"os"
 	"time"
+
 	_ "github.com/lib/pq"
 )
- // _ in import used to o stop the Go compiler complaining that the package isn't being used.
+
+// _ in import used to o stop the Go compiler complaining that the package isn't being used.
 const version = "1.0.0"
 
 type config struct {
@@ -25,6 +28,7 @@ type config struct {
 type application struct {
 	config config
 	logger *log.Logger
+	model data.Models // contains the Models struct
 
 }
 
@@ -37,18 +41,20 @@ func main() {
 	flag.Parse()	
 
 	logger := log.New(os.Stdout, "INFO: ", log.Ldate | log.Ltime)
-	app := &application{
-		config: cfg,
-		logger: logger,
-	}
 
 	db, err := openDB(cfg)
 	if err!=nil {
 		logger.Fatal(err)
 	}
 	defer db.Close()
-
 	logger.Println("Database connection pool Established Successfully!!")
+
+	app := &application{
+		config: cfg,
+		logger: logger,
+		model: data.NewModel(db), // return Model struct
+
+	}
 
 
 
