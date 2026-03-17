@@ -2,7 +2,7 @@ package main
 
 import (
 	"Green/internal/data"
-	"encoding/json"
+	"Green/internal/validator"
 	"fmt"
 	"net/http"
 	"time"
@@ -32,18 +32,32 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	var input struct {
 		Title string `json:"title"`
 		Year int32	`json:"year"`
-		Runtime int32	`json:"runtime"`
+		Runtime data.Runtime	`json:"runtime"`
 		Genres []string 	`json:"genres"`
 	}
-
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := app.readJSON(w, r, &input)
 	if err!= nil {
-		// we use err.Error() because err is a interface we need to call the function to get the err string
-		app.errorResponse(w,r,http.StatusBadRequest, err.Error())
+		app.badRequestResponse(w,r,err)
 		return
 	} 
 
+	// we make it as a pointer because te validatemovie function need pointer as input
+	movie := &data.Movie{
+		Title: input.Title,
+		Year: input.Year,
+		Runtime: input.Runtime,
+		Genres: input.Genres,
+	}
+	v := validator.New()
+	
+	if data.ValidateMovie(v, movie); !v.Valid()  { // if the len(v.Error) is not empty
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+
 	fmt.Fprintf(w,"%v\n",input)
+	// app.writeJSON(envelope{"movie": input},w, http.StatusOK,  nil)
 
 }
 
