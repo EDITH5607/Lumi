@@ -3,9 +3,10 @@ package main
 import (
 	"Green/internal/data"
 	"Green/internal/validator"
+	"errors"
 	"fmt"
 	"net/http"
-	"time"
+
 )
 
 
@@ -78,13 +79,15 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	movie:= data.Movie{
-		ID :		id,
-		CreatedAt : time.Now(),
-		Title : 	"Casablanca",
-		Runtime :   102,
-		Genres: []string{"drama", "romance", "war"},
-		Version :1,
+	movie,err := app.model.Movies.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err,data.ErrRecordNotFound):
+			app.notFoundReponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return 
 	}
 	err = app.writeJSON(envelope{"movie":movie}, w, http.StatusOK, nil)
 	if err!=nil {
