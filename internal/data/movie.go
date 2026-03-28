@@ -4,6 +4,8 @@ import (
 	"Green/internal/validator"
 	"database/sql"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 
@@ -24,7 +26,11 @@ type MovieModel struct {
 }
 
 func (m *MovieModel)Insert(movie *Movie) error{
-	return nil
+	query := `INSERT INTO movies (title, year, runtime, genres)
+		VALUES ($1, $2, $3, $4) RETURNING id, created_at, version`
+
+	args := []any{movie.Title, movie.Year, movie.Runtime, pq.Array(movie.Genres)}
+	return m.db.QueryRow(query, args...).Scan(&movie.ID, &movie.CreatedAt, &movie.Version)
 }
 
 func (m *MovieModel) Get(id int64) (*Movie, error) {
@@ -52,7 +58,7 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 	v.Check(movie.Year <= int32(time.Now().Year()),"year", "must not be in the future")
 	
 	v.Check(movie.Runtime!=0, "runtime", "must be provided!!")
-	v.Check(movie.Runtime<0, "runtime", "must be a positive integer")
+	v.Check(movie.Runtime>0, "runtime", "must be a positive integer")
 
 	v.Check(movie.Genres != nil, "genres","must be provided" )
 	v.Check(len(movie.Genres)>=1, "genres", "must contain at least 1 genre")
