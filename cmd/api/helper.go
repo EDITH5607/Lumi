@@ -39,16 +39,17 @@ func (app *application) writeJSON(data envelope,w http.ResponseWriter, status in
 		return err
 	}
 
+	// for looking better in terminal application...
+	js = append(js, '\n')
 	for key,value:= range headers {
 		// just sending other headers
 		w.Header()[key] = value
 	}
-	// for looking better in terminal application...
-	js = append(js, '\n')
 	// sending the json type for notify the browser the content is json
 	w.Header().Set("Content-Type","application/json")
 	w.WriteHeader(status)
 	w.Write(js)
+
 	return nil
 }
 
