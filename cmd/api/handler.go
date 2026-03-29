@@ -149,5 +149,26 @@ func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request
 }
 
 func(app *application)deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("delete Movie Handler !!"))
+	id,err := app.readIDParams(r)
+	if err!=nil{
+		app.badRequestResponse(w,r,err)
+		return
+	}
+
+	err = app.model.Movies.Delete(id)
+	if err!=nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundReponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+	err = app.writeJSON(envelope{"message":"Movie Successfully deleted"},w,http.StatusOK,nil)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+	}
+
+
 }
