@@ -3,10 +3,10 @@ package main
 import (
 	"Green/internal/data"
 	"Green/internal/validator"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-
 )
 
 
@@ -97,7 +97,55 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request){
-	w.Write([]byte("Update movie Handler!!"))
+	id, err := app.readIDParams(r)
+	if err!= nil {
+		app.notFoundReponse(w,r)
+	}
+	movie,err := app.model.Movies.Get(id) // fetch from db to check the id of the movie is valid or not
+	if err != nil {
+		switch {
+		case errors.Is(err,sql.ErrNoRows):
+			app.notFoundReponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)			
+		}
+	}
+
+
+	//reading content from json
+	var input struct {
+		Title string `json:"title"`
+		Year int32 `json:"year"`
+		Runtime data.Runtime `json:"runtime"`
+		Genres []string `json:"genres"`
+	}
+	err = app.readJSON(w,r,&input)
+	if err !=nil {
+		app.badRequestResponse(w,r,err)
+		return
+	}
+
+	movie.Title = input.Title
+	movie.Year = input.Year
+	movie.Runtime = input.Runtime
+	movie.Genres = input.Genres
+
+	v := validator.New()
+	if data.ValidateMovie(v,movie); !v.Valid() {
+		app.failedValidationResponse(w,r,v.Errors)
+		return
+	}
+	
+	err = app.model.Movies.Update(movie)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+	err = app.writeJSON(envelope{"movie":movie}, w,http.StatusOK,nil)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+	}
 }
 
 func(app *application)deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
