@@ -6,7 +6,8 @@ import (
 )
 
 var (
-	ErrRecordNotFound = errors.New("Record Not Found")
+	ErrRecordNotFound = errors.New("Record Not Found!!")
+	ErrEditConflict = errors.New("Edit Conflict!!")
 )
 
 // struct for distributing db instances with all methods
