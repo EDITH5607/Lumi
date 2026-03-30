@@ -113,10 +113,28 @@ func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request
 
 
 	//reading content from json
+	// When you decode a JSON request body into a Go struct,
+	//  any fields not included in the JSON automatically get their zero-value: like int->0, string->"", bool->false ... pointer->nil
+	/*
+	This creates an ambiguity problem — you can't tell the difference between:
+	A client sending {"title": ""} → meaning they intentionally provided an empty value (should trigger a validation error)
+	A client not sending title at all → meaning they want to skip updating that field (should be silently ignored)
+	Since pointers have a zero-value of nil, you can change your struct fields to use pointer types instead of plain types.
+	Then the logic becomes simple:
+	Field is nil → client didn't send it → skip it
+	Field is not nil → client sent a value (even if empty) → validate and update it
+	*/
+	// var input struct {
+	// 	Title string `json:"title"`
+	// 	Year int32 `json:"year"`
+	// 	Runtime data.Runtime `json:"runtime"`
+	// 	Genres []string `json:"genres"`
+	// }
+
 	var input struct {
-		Title string `json:"title"`
-		Year int32 `json:"year"`
-		Runtime data.Runtime `json:"runtime"`
+		Title *string `json:"title"`
+		Year *int32 `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
 		Genres []string `json:"genres"`
 	}
 	err = app.readJSON(w,r,&input)
@@ -125,10 +143,18 @@ func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
+	if input.Title!=nil {
+		movie.Title = *input.Title
+	}
+	if input.Year!=nil {
+		movie.Year = *input.Year
+	}
+	if input.Runtime!=nil {
+		movie.Runtime = *input.Runtime
+	}
+	if input.Genres!=nil {
+		movie.Genres = input.Genres
+	}
 
 	v := validator.New()
 	if data.ValidateMovie(v,movie); !v.Valid() {
@@ -138,7 +164,12 @@ func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request
 	
 	err = app.model.Movies.Update(movie)
 	if err != nil {
-		app.serverErrorResponse(w,r,err)
+		switch  {
+		case errors.Is(err,data.ErrEditConflict):
+			app.editConflictResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
 		return
 	}
 
