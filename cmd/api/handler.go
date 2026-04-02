@@ -223,7 +223,20 @@ func (app *application) listMovies(w http.ResponseWriter, r *http.Request) {
 		app.failedValidationResponse(w,r,v.Errors)
 		return
 	}
-	fmt.Fprintf(w,"%+v", input) // +v gives the struct with its member name like title:hello,...
+
+	movies, err := app.model.Movies.GetAll(input.Title, input.Genres, &input.Filters)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+	err = app.writeJSON(envelope{"movies":movies}, w,http.StatusOK, nil)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		
+	}
+
+	// fmt.Fprintf(w,"%+v", input) // +v gives the struct with its member name like title:hello,...
 	//%v only gives the value
 
 
