@@ -1,11 +1,13 @@
 package main
 
 import (
+	"Green/internal/validator"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -119,4 +121,37 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dsn any
 func (app *application)badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	// we use err.Error() because err is a interface we need to call the function to get the err string
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+
+
+func (app *application) readString(qs url.Values, key string, defaultString string) string {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultString
+	}
+	return s
+}
+
+func (app *application) readInt(qs url.Values,key string, defaultvalue int, v *validator.Validator) int {
+	s := qs.Get(key)
+	if s==""{
+		return defaultvalue
+	}
+	
+	i, err := strconv.Atoi(s)
+	if err!=nil {
+		v.AddError(key, "must be an integer value")
+		return defaultvalue
+	}
+	return i
+}
+
+
+// the data look like "key":"value1,value2,value3"->get()->"value1,value2,value3"
+func (app *application) readCSV(qs url.Values, key string, defaultvalue []string) []string {
+	csv := qs.Get(key)
+	if csv=="" {
+		return defaultvalue
+	}
+	return strings.Split(csv,",") // split fn return a string[] with split values
 }
