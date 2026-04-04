@@ -224,13 +224,13 @@ func (app *application) listMovies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	movies, err := app.model.Movies.GetAll(input.Title, input.Genres, &input.Filters)
+	movies,metadata,  err := app.model.Movies.GetAll(input.Title, input.Genres, &input.Filters)
 	if err!=nil {
 		app.serverErrorResponse(w,r,err)
 		return
 	}
 
-	err = app.writeJSON(envelope{"movies":movies}, w,http.StatusOK, nil)
+	err = app.writeJSON(envelope{"metadata":metadata,"movies":movies}, w,http.StatusOK, nil)
 	if err!=nil {
 		app.serverErrorResponse(w,r,err)
 		
