@@ -98,29 +98,35 @@ func (m *MovieModel) Delete(id int64) error {
 	return nil
 }
 
-func (m *MovieModel)GetAll(title string, genres []string, f *Filters)([]*Movie, error) {
+func (m *MovieModel)GetAll(title string, genres []string, f *Filters)([]*Movie, Metadata, error) {
 	//the empty string "" , and the
 	// filter condition in the SQL query will evaluate to true and act like it has been ‘skipped’.
 	// Likewise with the genres parameter.
-	query :=  fmt.Sprintf(`SELECT id, created_at, title, year, runtime, genres, version
+	query := fmt.Sprintf(`
+			SELECT count(*) OVER(), id, created_at, title, year, runtime, genres, version
 			FROM movies
 			WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 			AND (genres @> $2 OR $2 = '{}')
-			ORDER BY %s %s, id ASC`, f.sortColumn(), f.sortDirection())
+			ORDER BY %s %s, id ASC
+			LIMIT $3 OFFSET $4`, f.sortColumn(), f.sortDirection())
 
 			// @> : ‘contains’ this means contains in the pq array if yes then return true otherwise false
 	ctx , cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	rows, err := m.db.QueryContext(ctx, query,title,pq.Array(genres))
+
+	args := []any{title, pq.Array(genres), f.limit(), f.offset()}
+	rows, err := m.db.QueryContext(ctx, query,args... )
 	if err!=nil {
-		return nil,err
+		return nil,Metadata{}, err
 	}
 
 	defer rows.Close()
 	movies := []*Movie{}
+	totalrecord := 0 
 	for rows.Next() {
 		var movie Movie
 		err :=rows.Scan(
+			&totalrecord,
 			&movie.ID,
 			&movie.CreatedAt, 
 			&movie.Title,
@@ -130,16 +136,16 @@ func (m *MovieModel)GetAll(title string, genres []string, f *Filters)([]*Movie, 
 			&movie.Version,
 		)
 		if err!=nil {
-			return nil,err
+			return nil,Metadata{}, err
 		}
 		movies = append(movies,&movie)
 
 	}
 	if err = rows.Err(); err!=nil {
-		return nil,err
+		return nil,Metadata{},err
 	}
-
-	return movies,nil
+	metadata:= calculateMetaData(totalrecord, f.Page, f.PageSize)
+	return movies,metadata, nil
 }
 
 
