@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/lib/pq"
@@ -98,12 +99,16 @@ func (m *MovieModel) Delete(id int64) error {
 }
 
 func (m *MovieModel)GetAll(title string, genres []string, f *Filters)([]*Movie, error) {
-	query := `SELECT id, created_at, title, year, runtime, genres, version
+	//the empty string "" , and the
+	// filter condition in the SQL query will evaluate to true and act like it has been ‘skipped’.
+	// Likewise with the genres parameter.
+	query :=  fmt.Sprintf(`SELECT id, created_at, title, year, runtime, genres, version
 			FROM movies
-			WHERE (LOWER(title) = LOWER($1) OR $1 = '')
+			WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
 			AND (genres @> $2 OR $2 = '{}')
-			ORDER BY id`
+			ORDER BY %s %s, id ASC`, f.sortColumn(), f.sortDirection())
 
+			// @> : ‘contains’ this means contains in the pq array if yes then return true otherwise false
 	ctx , cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	rows, err := m.db.QueryContext(ctx, query,title,pq.Array(genres))
