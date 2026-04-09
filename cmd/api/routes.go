@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (app *application) routes() *httprouter.Router {
+func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
 	// we are registor our methods to the httprouter because router itself send the reponse as plain text 
@@ -23,5 +23,5 @@ func (app *application) routes() *httprouter.Router {
 
 	// this returns a type  *httprouter.Router but this struct contain 
 	// a serverHTTP method to satisfy the http.Handler interface
-	return router
+	return app.recoverPanic(router)
 }
