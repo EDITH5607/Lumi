@@ -2,11 +2,11 @@ package main
 
 import (
 	"Green/internal/data"
+	"Green/internal/jsonlog"
 	"context"
 	"database/sql"
 	"flag"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -27,7 +27,7 @@ type config struct {
 
 type application struct {
 	config config
-	logger *log.Logger
+	logger *jsonlog.Logger
 	model data.Models // contains the Models struct
 
 }
@@ -40,14 +40,14 @@ func main() {
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("LUMI_DB_DSN"), "PostgresSQL DSN")
 	flag.Parse()	
 
-	logger := log.New(os.Stdout, "INFO: ", log.Ldate | log.Ltime)
+	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
 
 	db, err := openDB(cfg)
 	if err!=nil {
-		logger.Fatal(err)
+		logger.PrintFatal(err,nil)
 	}
 	defer db.Close()
-	logger.Println("Database connection pool Established Successfully!!")
+	logger.PrintInfo("Database connection pool Established Successfully!!",nil)
 
 	app := &application{
 		config: cfg,
@@ -67,9 +67,9 @@ func main() {
 		IdleTimeout: time.Minute,
 	}
 
-	logger.Printf("Start %s Server on port: %d ",cfg.env,cfg.port)
+	logger.PrintInfo("Start Server", map[string]string{"addr":server.Addr, "env":cfg.env})
 	err = server.ListenAndServe()
-	logger.Fatal(err)
+	logger.PrintFatal(err, nil)
 	
 }
 
