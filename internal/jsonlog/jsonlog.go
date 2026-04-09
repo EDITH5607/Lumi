@@ -3,6 +3,7 @@ package jsonlog
 import (
 	"encoding/json"
 	"io"
+	"os"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -51,8 +52,13 @@ func (l *Logger)PrintInfo(message string, properties map[string]string) {
 	l.print(LevelInfo, message, properties)
 }
 
-func (l *Logger) PrintError(message string, properties map[string]string) {
-	l.print(LevelError, message, properties)
+func (l *Logger) PrintError(err error, properties map[string]string) {
+	l.print(LevelError, err.Error(), properties)
+}
+
+func (l *Logger) PrintFatal(err error, properties map[string]string) {
+	l.print(LevelError, err.Error(), properties)
+	os.Exit(1)
 }
 
 
@@ -81,7 +87,17 @@ func (l *Logger) print(level Level, message string, properties map[string]string
 	var line []byte
 	line,err := json.Marshal(aux)
 	if err!=nil {
-		
+		line = []byte(LevelError.String()+":unable to marshal log message:"+ err.Error())
 	}
-	return  0, nil
+	l.mu.Lock() // mutex lock to lock so that no two writes to the output destination can happen concurrently
+	defer l.mu.Unlock()
+	return  l.out.Write(append(line,'\n'))
+}
+
+
+// We also implement a Write() method on our Logger type so that it satisfies the
+// io.Writer interface. This writes a log entry at the ERROR level with no additional
+// properties.
+func (l *Logger) Write(message []byte)(n int, err error) {
+	return l.print(LevelError, string(message), nil)
 }
