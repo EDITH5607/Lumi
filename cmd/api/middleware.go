@@ -65,31 +65,35 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 	return  http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		// splithostport used to split the host:port and return host,port,err
-		ip,_, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			app.serverErrorResponse(w,r,err)
-			return 
+		if app.config.limiter.enabled {	
+			ip,_, err := net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				app.serverErrorResponse(w,r,err)
+				return 
+			}
+		
+
+			mu.Lock() // mutex lock is used to prevent the overwriting or race condition in map
+
+			// providing rate limit for new clients
+			if _,found := clients[ip]; !found {
+				// the rate.Limit is just a type which is float64 so the app.config.limiter.rps is float64 and type cast into rate.Limit type
+				clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps),app.config.limiter.burst)}
+			}
+
+			//update the lastseen time to latest time
+			clients[ip].lastSeen = time.Now()
+
+			// calling Allow fn will consume one token if the bucket is empty  then it will return false
+			if !clients[ip].limiter.Allow() { 
+				mu.Unlock()
+				app.rateLimitExceededResponse(w,r)
+				return
+			}
+
+			// unlock the mutex which we used to prevent the race condition in map[ip]=ratelimit
+			mu.Unlock() 
 		}
-
-		mu.Lock() // mutex lock is used to prevent the overwriting or race condition in map
-
-		// providing rate limit for new clients
-		if _,found := clients[ip]; !found {
-			clients[ip] = &client{limiter: rate.NewLimiter(2,4)}
-		}
-
-		//update the lastseen time to latest time
-		clients[ip].lastSeen = time.Now()
-
-		// calling Allow fn will consume one token if the bucket is empty  then it will return false
-		if !clients[ip].limiter.Allow() { 
-			mu.Unlock()
-			app.rateLimitExceededResponse(w,r)
-			return
-		}
-
-		// unlock the mutex which we used to prevent the race condition in map[ip]=ratelimit
-		mu.Unlock() 
 		next.ServeHTTP(w,r)
 	})
 }
