@@ -23,6 +23,11 @@ type config struct {
 	db struct {
 		dsn string	
 	}
+	limiter struct {
+		rps float64 //request per second usual the ratelimiter internally use float for this for calculation
+		burst int
+		enabled bool
+	}
 }
 
 type application struct {
@@ -35,12 +40,22 @@ type application struct {
 func main() {
 
 	var cfg config
+
+	// port, stage,dsn(data source name) for db
 	flag.IntVar(&cfg.port,"Port", 4000,"API Server Port")
 	flag.StringVar(&cfg.env, "env", "development","Environment (development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("LUMI_DB_DSN"), "PostgresSQL DSN")
+
+
+	// ratelimiter cmd arguments
+	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2,"Rate limiter maximum requests per second")
+	flag.IntVar(&cfg.limiter.burst,"limiter-burst",4, "Rate limiter maximum burst")
+	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+	
 	flag.Parse()	
 
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
+
 
 	db, err := openDB(cfg)
 	if err!=nil {
@@ -49,6 +64,7 @@ func main() {
 	defer db.Close()
 	logger.PrintInfo("Database connection pool Established Successfully!!",nil)
 
+	
 	app := &application{
 		config: cfg,
 		logger: logger,
