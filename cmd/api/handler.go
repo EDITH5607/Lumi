@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 
@@ -19,7 +20,7 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 		},
 
 	}
-
+	time.Sleep(4*time.Second)
 	err := app.writeJSON(data,w,http.StatusOK, nil) 
 	if err != nil {
 		app.serverErrorResponse(w,r,err)
