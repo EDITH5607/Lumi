@@ -6,8 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -34,6 +32,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	model data.Models // contains the Models struct
+	db *sql.DB
 
 }
 
@@ -69,23 +68,13 @@ func main() {
 		config: cfg,
 		logger: logger,
 		model: data.NewModel(db), // return Model struct
+		db: db,
 
 	}
-
-
-
-	server :=  &http.Server{
-		Addr: fmt.Sprintf(":%d",cfg.port),
-		// the mux is httprouter.Route struct but it contain serveHTTP method to satisfy the Handler interface
-		Handler: app.routes()	,
-		ReadTimeout : 10*time.Second,
-		WriteTimeout: 20* time.Second,
-		IdleTimeout: time.Minute,
+	err = app.serve()
+	if err!=nil {
+		logger.PrintFatal(err, nil)
 	}
-
-	logger.PrintInfo("Start Server", map[string]string{"addr":server.Addr, "env":cfg.env})
-	err = server.ListenAndServe()
-	logger.PrintFatal(err, nil)
 	
 }
 
