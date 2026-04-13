@@ -1,7 +1,7 @@
 package validator
 
 import (
-	"regexp"
+	"net/mail"
 )
 
 
@@ -43,8 +43,16 @@ func PermittedValue[T comparable] (value T, permittedValues ...T) bool {
 	return false
 }
 
-func Matches(value string, rx *regexp.Regexp) bool {
-	return rx.MatchString(value)
+// func Matches(value string, rx *regexp.Regexp) bool {
+// 	return rx.MatchString(value)
+// }
+
+func IsValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	if err!=nil {
+		return false
+	}
+	return true
 }
 
 func	Unique[T comparable](values []T) bool {
