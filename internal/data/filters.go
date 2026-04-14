@@ -64,6 +64,8 @@ func (f Filters) limit() int {
 	return f.PageSize
 }
 
+
+//LIMIT says how many to take, OFFSET says how many to skip.
 func (f Filters) offset() int {
 	return (f.Page - 1 ) * f.PageSize 
 }
