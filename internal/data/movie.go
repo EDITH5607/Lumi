@@ -98,6 +98,10 @@ func (m *MovieModel) Delete(id int64) error {
 	return nil
 }
 
+
+
+// LIMIT says how many to take, OFFSET says how many to skip.  
+//LIMIT is the pagesize and OFFSET is the page no.like how much need to skip
 func (m *MovieModel)GetAll(title string, genres []string, f *Filters)([]*Movie, Metadata, error) {
 	//the empty string "" , and the
 	// filter condition in the SQL query will evaluate to true and act like it has been ‘skipped’.
