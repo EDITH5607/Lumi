@@ -13,12 +13,14 @@ var (
 // struct for distributing db instances with all methods
 type Models struct {
 	Movies MovieModel // struct contain db instance for movies methods 
+	Users  UserModel // struct contain db instance for user methods
 }
 
 // constructor to initialize the model struct
 func NewModel(db *sql.DB) Models {
 	return Models{
 		Movies: MovieModel{db: db},
+		Users: UserModel{db: db},
 	}
 }
 
