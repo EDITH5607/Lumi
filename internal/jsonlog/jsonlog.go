@@ -57,17 +57,19 @@ func (l *Logger) PrintError(err error, properties map[string]string) {
 }
 
 func (l *Logger) PrintFatal(err error, properties map[string]string) {
-	l.print(LevelError, err.Error(), properties)
+	l.print(LevelFatal, err.Error(), properties)
 	os.Exit(1)
 }
 
 
 //this print is private because fn start with lowercase letter
 func (l *Logger) print(level Level, message string, properties map[string]string) (int,error) {
+
 	//checking the severirty of the log entry
 	if level < l.minLevel {
 		return 0, nil
 	}
+	//build a structured log entry
 	aux := struct {
 		Level		string		  `json:"level"`
 		Time  	string		  `json:"time"`
@@ -80,24 +82,31 @@ func (l *Logger) print(level Level, message string, properties map[string]string
 		Message: message,
 		Properties: properties,
 	}
+
+	//attach stack trace for errors
 	if level>=LevelError {
 		aux.Trace = string(debug.Stack())
 	}
 
+	// Marshal to json...
 	var line []byte
 	line,err := json.Marshal(aux)
 	if err!=nil {
 		line = []byte(LevelError.String()+":unable to marshal log message:"+ err.Error())
 	}
-	l.mu.Lock() // mutex lock to lock so that no two writes to the output destination can happen concurrently
-	defer l.mu.Unlock()
-	return  l.out.Write(append(line,'\n'))
+
+	//lock to avoid concurrent write
+	l.mu.Lock() // mutex lock to lock to avoid two writes  output ,destination can happen concurrently
+	defer l.mu.Unlock() // run after return 
+	return  l.out.Write(append(line,'\n'))  // write  like io.write([]byte(data))  is like os.Stdout.Write() or file.Write() not the below write
 }
 
 
-// We also implement a Write() method on our Logger type so that it satisfies the
-// io.Writer interface. This writes a log entry at the ERROR level with no additional
-// properties.
+ //by implementing Write(), the Logger itself becomes an io.Writer. 
+ // This means you can pass it anywhere Go expects an io.Writer, like http.Server's error logger:
+ //  srv := &http.Server{
+//     ErrorLog: log.New(logger, "", 0), // uses your custom logger
+// }
 func (l *Logger) Write(message []byte)(n int, err error) {
 	return l.print(LevelError, string(message), nil)
 }
