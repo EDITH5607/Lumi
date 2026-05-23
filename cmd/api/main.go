@@ -40,6 +40,7 @@ func main() {
 
 	var cfg config
 
+	// Filling config struct
 	// port, stage,dsn(data source name) for db
 	flag.IntVar(&cfg.port,"Port", 4000,"API Server Port")
 	flag.StringVar(&cfg.env, "env", "development","Environment (development|staging|production)")
@@ -53,9 +54,12 @@ func main() {
 	
 	flag.Parse()	
 
+
+
+
+	// making logger instance
 	logger := jsonlog.New(os.Stdout, jsonlog.LevelInfo)
-
-
+	// making db instance
 	db, err := openDB(cfg)
 	if err!=nil {
 		logger.PrintFatal(err,nil)
@@ -64,13 +68,17 @@ func main() {
 	logger.PrintInfo("Database connection pool Established Successfully!!",nil)
 
 	
-	app := &application{
-		config: cfg,
-		logger: logger,
-		model: data.NewModel(db), // return Model struct
-		db: db,
+	// filling application struct 
+	app := &application{  
+		config: cfg,  // config struct is passed
+		logger: logger,	//logger instance is passed
+		model: data.NewModel(db), // return Model struct which stores all model for dependecy injection
+		db: db,  // filling db instance here pg instance is passed
 
 	}
+
+
+	// Starting the server using custom serve function
 	err = app.serve()
 	if err!=nil {
 		logger.PrintFatal(err, nil)
@@ -78,7 +86,10 @@ func main() {
 	
 }
 
+
+// Returning db instance according to the dsn
 func openDB(cfg config) (*sql.DB, error) {
+	// open database
 	db, err := sql.Open("postgres",cfg.db.dsn)
 	if err != nil {
 		return nil, err
