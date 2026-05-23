@@ -15,6 +15,7 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Password string `json:"password"`
 	}
 
+	// read user data from the input json
 	err := app.readJSON(w,r, &input)
 	if err!=nil {
 		app.badRequestResponse(w,r,err)
@@ -28,6 +29,7 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Activated: false,
 	}
 
+	//validate the data from the user
 	err = user.Password.Set(input.Password)
 	if err!=nil {
 		app.serverErrorResponse(w, r, err)
