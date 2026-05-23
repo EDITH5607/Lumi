@@ -23,16 +23,23 @@ import (
 
 type envelope map[string]any
 
+
+
+//read id query parameter from the url
 func (app *application) readIDParams(r *http.Request) (int64, error) {
+
 	// returns a params slice(with elements as struct) with |key1,value1|key2,value2|...
 	params := httprouter.ParamsFromContext(r.Context())
+
 	//.parseint that can be used to convert string into int with wide varity of bases like 0,8,16,32,64,we can also use atoi
-	id, err := strconv.ParseInt(params.ByName("id"),10,64)
+	id, err := strconv.ParseInt(params.ByName("id"),10,64)  // the id:value , parse value into int 
 	if err!=nil || id < 1{
 		return 0, errors.New("Invalid ID Parameter")
 	}
 	return id,nil
 }
+
+
 
 func (app *application) writeJSON(data envelope,w http.ResponseWriter, status int, headers http.Header)  error{
 	//marshall return a byte array and an error , MarshalIndent , no line prefix and tab indent for each element
