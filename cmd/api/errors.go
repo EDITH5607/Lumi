@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-
+// used to log error to the terminal
 func (app *application) logError(r *http.Request, err error) {
 	app.logger.PrintError(err, map[string]string{
 		"request_method":r.Method,
@@ -13,6 +13,8 @@ func (app *application) logError(r *http.Request, err error) {
 	})
 }
 
+
+// pass the error as json to the client
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request,status int,  message any) {
 	env := envelope{"error":message}
 	err := app.writeJSON(env,w,status, nil)
