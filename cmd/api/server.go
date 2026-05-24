@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+
+// used to configure and start the server
 func (app *application) serve() error {
 	server :=  &http.Server{
 		Addr: fmt.Sprintf(":%d",app.config.port),
