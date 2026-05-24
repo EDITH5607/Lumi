@@ -8,6 +8,8 @@ import (
 )
 
 
+
+// register user from the input json data
 func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name     string `json:"name"`
