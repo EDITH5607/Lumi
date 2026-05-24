@@ -6,6 +6,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+
+// all routes are registered here
 func (app *application) routes() http.Handler {
 	router := httprouter.New()
 
