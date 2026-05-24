@@ -41,6 +41,7 @@ func (app *application) readIDParams(r *http.Request) (int64, error) {
 
 
 
+// write json used to write content as json using marshal method
 func (app *application) writeJSON(data envelope,w http.ResponseWriter, status int, headers http.Header)  error{
 	//marshall return a byte array and an error , MarshalIndent , no line prefix and tab indent for each element
 	js, err := json.Marshal(data)
@@ -63,8 +64,6 @@ func (app *application) writeJSON(data envelope,w http.ResponseWriter, status in
 }
 
 // json.decode only work once that means the first json is readed , if we again call json.decode then it reads the second json
-
-
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dsn any) error {
 	// this prevent ddos attacks and sending malicious code from client ...
 	// _ is something numeric literal separator if we use 1000000 is 10lak == 1_000_000
