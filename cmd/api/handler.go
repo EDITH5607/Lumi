@@ -11,6 +11,8 @@ import (
 )
 
 
+
+// used to check the health of api
 func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	data := envelope{
 		"status":"available",
@@ -29,6 +31,8 @@ func (app *application) healthCheckHandler(w http.ResponseWriter, r *http.Reques
 	
 }
 
+
+// create movie in the route
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
 
 	var input struct {
@@ -73,6 +77,8 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 
 }
 
+
+// show movie according the give id
 func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParams(r)
 	if err!=nil {
@@ -97,6 +103,8 @@ func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+
+// update the movie on the db
 func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request){
 	id, err := app.readIDParams(r)
 	if err!= nil {
@@ -180,6 +188,8 @@ func (app *application)updateMovieHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+
+// delete movie from the database using this route
 func(app *application)deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id,err := app.readIDParams(r)
 	if err!=nil{
@@ -205,6 +215,8 @@ func(app *application)deleteMovieHandler(w http.ResponseWriter, r *http.Request)
 
 }
 
+
+// list all movies like pagination and filter
 func (app *application) listMovies(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Title string
