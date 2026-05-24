@@ -10,6 +10,8 @@ import (
 	"golang.org/x/time/rate"
 )
 
+
+// Graceful shutdown when panic happens
 func (app *application)recoverPanic(next http.Handler) http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// deffer function used because when a panic happens go unwind the stack so 
@@ -27,6 +29,8 @@ func (app *application)recoverPanic(next http.Handler) http.Handler{
 }
 
 
+
+// rate limiting based on the ip based
 func (app *application) rateLimit(next http.Handler) http.Handler {
 	// 2 is the 2req per second (2 token refill in the bucket per second) 4 burst means max four entries in the bucket.
 	// limiter := rate.NewLimiter(2,4)
