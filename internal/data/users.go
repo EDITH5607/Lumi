@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
+// user struct to accept data from the handler to the internal
 type User struct {
 	ID 		int		`json:"id"`
 	Created_at  time.Time	`json:"created_at"`
@@ -177,7 +177,7 @@ func (m *UserModel) Update(user *User) error {
 	if err!=nil {
 		switch {
 			case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
-				return ErrDuplicateEmail
+				return ErrDuplicateEmail  // citext (case insensitive text) as the field in db so it will manage capital letters
 			case errors.Is(err, sql.ErrNoRows):
 				return ErrEditConflict
 			default:
