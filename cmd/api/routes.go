@@ -16,6 +16,7 @@ func (app *application) routes() http.Handler {
 	router.NotFound = http.HandlerFunc(app.notFoundReponse)
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
+	//health route for checking the health of the system
 	router.HandlerFunc(http.MethodGet, "/v1/health", app.healthCheckHandler)
 
 	//movie routes
