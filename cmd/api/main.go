@@ -3,6 +3,7 @@ package main
 import (
 	"Green/internal/data"
 	"Green/internal/jsonlog"
+	"Green/internal/mailer"
 	"context"
 	"database/sql"
 	"flag"
@@ -17,14 +18,21 @@ const version = "1.0.0"
 
 type config struct {
 	port int
-	env string
+	env  string
 	db struct {
 		dsn string	
 	}
 	limiter struct {
-		rps float64 //request per second usual the ratelimiter internally use float for this for calculation
-		burst int
+		rps     float64 //request per second usual the ratelimiter internally use float for this for calculation
+		burst   int
 		enabled bool
+	}
+	smtp struct {
+		host     string
+		port     int
+		username string
+		password string
+		sender   string
 	}
 }
 
@@ -33,6 +41,7 @@ type application struct {
 	logger *jsonlog.Logger
 	model data.Models // contains the Models struct
 	db *sql.DB
+	mailer mailer.Mailer
 
 }
 
@@ -47,10 +56,18 @@ func main() {
 	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("LUMI_DB_DSN"), "PostgresSQL DSN")
 
 
-	// ratelimiter cmd arguments
+	// ratelimiter cli arguments
 	flag.Float64Var(&cfg.limiter.rps, "limiter-rps", 2,"Rate limiter maximum requests per second")
 	flag.IntVar(&cfg.limiter.burst,"limiter-burst",4, "Rate limiter maximum burst")
 	flag.BoolVar(&cfg.limiter.enabled, "limiter-enabled", true, "Enable rate limiter")
+
+
+	//smtp server configeration cli arguments
+	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
+	flag.IntVar(&cfg.port, "smtp-port", 25, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", "myname", "SMTP-username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "your password", "SMTP-password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Lumi <no-reply@lumi.myemail.net>", "SMTP-sender")
 	
 	flag.Parse()	
 
@@ -74,6 +91,7 @@ func main() {
 		logger: logger,	//logger instance is passed
 		model: data.NewModel(db), // return Model struct which stores all model for dependecy injection
 		db: db,  // filling db instance here pg instance is passed
+		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender), // providing new instance of mail service for all handlers
 
 	}
 
