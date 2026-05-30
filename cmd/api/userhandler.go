@@ -68,6 +68,14 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+	//sending welcome email to the client
+	err = app.mailer.Send(user.Email,"user_welcome.html", user)
+	if err != nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
 	// write the contents to the user like user is created(not activated)
 	err  = app.writeJSON(envelope{"user":user}, w, http.StatusCreated, nil)
 	if err!=nil {
