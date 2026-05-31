@@ -7,7 +7,9 @@ import (
 	"context"
 	"database/sql"
 	"flag"
+	"log"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -63,11 +65,15 @@ func main() {
 
 
 	//smtp server configeration cli arguments
-	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.mailtrap.io", "SMTP host")
-	flag.IntVar(&cfg.port, "smtp-port", 25, "SMTP port")
-	flag.StringVar(&cfg.smtp.username, "smtp-username", "myname", "SMTP-username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "your password", "SMTP-password")
-	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Lumi <no-reply@lumi.myemail.net>", "SMTP-sender")
+	flag.StringVar(&cfg.smtp.host, "smtp-host", os.Getenv("SMTP_HOST"), "SMTP host")
+	smtpPort, err := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	if err!=nil {
+		log.Fatal(err) // dont use return in main function user log.fatal for stoping and returning error to console or terminal
+	}
+	flag.IntVar(&cfg.smtp.port, "smtp-port", smtpPort, "SMTP port")
+	flag.StringVar(&cfg.smtp.username, "smtp-username", os.Getenv("SMTP_USERNAME"), "SMTP-username")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", os.Getenv("SMTP_PASSWORD"), "SMTP-password")
+	flag.StringVar(&cfg.smtp.sender, "smtp-sender", os.Getenv("SMTP_SENDER"), "SMTP-sender")
 	
 	flag.Parse()	
 
