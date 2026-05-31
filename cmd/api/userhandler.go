@@ -4,7 +4,6 @@ import (
 	"Green/internal/data"
 	"Green/internal/validator"
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -67,18 +66,7 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	go func ()  {
-		// if a goroutine panics (crashes) it will take down entire program, even if main programs is fine
-		// defer runs after the surrounding function ends — whether it ends normally or by panic.
-		// we make it as a defer fn because a block of code is need to run its not a goroutine
-		// err handles expected errors. But some errors are unexpected panics (like nil pointer, index out of range).
-		//  recover() catches those panics that err would never catch.
-		defer func() {
-			if err:= recover(); err!=nil {
-				app.logger.PrintError(fmt.Errorf("%s", err),nil)
-			}
-		}()
+	app.background(func() {
 		//sending welcome email to the client
 		err = app.mailer.Send(user.Email,"user_welcome.html", user)
 		if err != nil {
@@ -86,9 +74,9 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 			// This is because by the time we encounter the errors, the client will probably
 			// have already been sent a 202 Accepted response by our writeJSON() helper.
 			app.logger.PrintError(err,nil)
-			return
 		}
-	}()
+	})
+
 
 
 
