@@ -39,7 +39,7 @@ func New(host string, port int, username, password, sender string) Mailer {
 func (m Mailer) Send(recipient, templateFile string, data any) error {
 
 	// this will find and load template file and make a new template 
-	tmpl, err := template.New("email").ParseFS(templateFS, "template/" + templateFile)
+	tmpl, err := template.New("email").ParseFS(templateFS, "templates/" + templateFile)
 	if err!=nil {
 		return err
 	}
@@ -75,11 +75,17 @@ func (m Mailer) Send(recipient, templateFile string, data any) error {
 	msg.AddAlternative("text/html", htmlBody.String())
 
 
-	// after setting all call the dialand send to the smtp provider
-	err = m.dialer.DialAndSend(msg)
-	if err!=nil {
-		return err
+	// retry sending upto three times before aborting and returning the final error, sleep 500milisecond before sending next
+	for i:=1; i <= 3; i++ {
+		// after setting all call the dialand send to the smtp provider
+		err = m.dialer.DialAndSend(msg)
+		// for visual not mistaking that why we use nil == err , both ways are correct
+		if nil == err {
+			return nil
+		}
+		// if didnt work sleep for 500 milliseconds and retry
+		time.Sleep(500 * time.Millisecond )
 	}
 
-	return nil
+	return err
 }
