@@ -161,3 +161,28 @@ func (app *application) readCSV(qs url.Values, key string, defaultvalue []string
 	}
 	return strings.Split(csv,",") // split fn return a string[] with split values
 }
+
+
+// background is a goroutine factory which accept fn as parameter 
+// run the fn inside a goroutine safely if any panic occur it catches and recover that goroutine
+// without effecting the whole program
+func (app *application) background(fn func()) {
+
+	// launching background goroutine
+	// if a goroutine panics (crashes) it will take down entire program, even if main programs is fine
+	// defer runs after the surrounding function ends — whether it ends normally or by panic.
+	// we make it as a defer fn because a block of code is need to run its not a goroutine
+	// err handles expected errors. But some errors are unexpected panics (like nil pointer, index out of range).
+	//  recover() catches those panics that err would never catch.
+	go func ()  {
+		// Recover any panic
+		defer func() {
+			if err := recover(); err!=nil {
+				app.logger.PrintError(fmt.Errorf("%s", err),nil)
+			}
+		}()	
+
+		// Execute the arbitary fn that we passed  as parameter
+		fn()
+	}()
+}
