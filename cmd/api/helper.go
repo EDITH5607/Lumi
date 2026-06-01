@@ -176,8 +176,13 @@ func (app *application) background(fn func()) {
 	// err handles expected errors. But some errors are unexpected panics (like nil pointer, index out of range).
 	//  recover() catches those panics that err would never catch.
 
+
+	// increment the waitgroup counter with 1 
 	app.wg.Add(1)
 	go func ()  {
+
+		// ,done() decrement the waitgroup counter
+		// first func() defer execute and then defer app.wg... execute means wg decrement at the last
 		defer app.wg.Done()
 		// Recover any panic
 		defer func() {
