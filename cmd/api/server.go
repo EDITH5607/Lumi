@@ -49,13 +49,27 @@ func (app *application) serve() error {
 
 
 		// Close your DB connections here!
-		app.db.Close()
-		app.logger.PrintInfo("DB close Successfully",nil)
+		// app.db.Close()
+		// app.logger.PrintInfo("DB close Successfully",nil)
 
-		// returning error message when server shutdown to the shutdownerror channel
-		// the sends nil or error to the serve fn using shutdownerror channel 
-		// when complete shutdown the max limit is 20 second
-		shutdownError <- server.Shutdown(ctx)
+		// // returning error message when server shutdown to the shutdownerror channel
+		// // the sends nil or error to the serve fn using shutdownerror channel 
+		// // when complete shutdown the max limit is 20 second
+		// shutdownError <- server.Shutdown(ctx)
+
+
+		err := server.Shutdown(ctx)
+		if err!=nil {
+			shutdownError<-err
+		}
+
+		app.logger.PrintInfo("Completing background tasks ", map[string]string{
+			"addr":server.Addr,
+		})
+
+		app.wg.Wait()
+
+		shutdownError <- nil
 
 	}()
 
