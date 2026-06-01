@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -44,6 +45,7 @@ type application struct {
 	model data.Models // contains the Models struct
 	db *sql.DB
 	mailer mailer.Mailer
+	wg     sync.WaitGroup
 
 }
 
@@ -98,8 +100,9 @@ func main() {
 		model: data.NewModel(db), // return Model struct which stores all model for dependecy injection
 		db: db,  // filling db instance here pg instance is passed
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender), // providing new instance of mail service for all handlers
-
+		
 	}
+	
 
 
 	// Starting the server using custom serve function
