@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strconv"
 	"strings"
 
@@ -174,12 +175,15 @@ func (app *application) background(fn func()) {
 	// we make it as a defer fn because a block of code is need to run its not a goroutine
 	// err handles expected errors. But some errors are unexpected panics (like nil pointer, index out of range).
 	//  recover() catches those panics that err would never catch.
+
+	app.wg.Add(1)
 	go func ()  {
+		defer app.wg.Done()
 		// Recover any panic
 		defer func() {
 			if err := recover(); err!=nil {
-				app.logger.PrintError(fmt.Errorf("%s", err),nil)
-			}
+				stack := debug.Stack()
+        			app.logger.PrintError(fmt.Errorf("panic: %v\n%s", err, stack), nil)			}
 		}()	
 
 		// Execute the arbitary fn that we passed  as parameter
