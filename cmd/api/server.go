@@ -38,7 +38,7 @@ func (app *application) serve() error {
 		// Read the signal from quit channel(), if channel is empty rest of the code will never run(the goroutine block code not the other part of funcition)
 		s := <-quit
 		//logging the signal for grace shutdown
-		app.logger.PrintInfo("Shutting down server", map[string]string{
+		app.logger.PrintInfo("Caught Signal", map[string]string{
 			"signal":s.String(),
 		})
 
@@ -58,6 +58,8 @@ func (app *application) serve() error {
 		// shutdownError <- server.Shutdown(ctx)
 
 
+		// sending error message to the shutdownerror channel 
+		// if any error occured during the server.shutdown process
 		err := server.Shutdown(ctx)
 		if err!=nil {
 			shutdownError<-err
@@ -67,6 +69,9 @@ func (app *application) serve() error {
 			"addr":server.Addr,
 		})
 
+		// .wg.wait() will block the code and wait for the counter to become zero
+		// means wait and blocking until the background goroutines have finished and then we return nil to the shutdownerror channel
+		// to indicate that shutdown complete without any issue
 		app.wg.Wait()
 
 		shutdownError <- nil
