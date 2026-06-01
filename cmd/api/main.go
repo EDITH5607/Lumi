@@ -39,6 +39,12 @@ type config struct {
 	}
 }
 
+
+// sync waitgroup is a just a counter which count the number of goroutines are running 
+// using .add(1) counter 1 increment which is used right before running the goroutine 
+// using .done() used to decrement 1 means one goroutine is completed
+// using .wait() wait for the counter number to be zero means wait for all other goroutines to complete
+
 type application struct {
 	config config
 	logger *jsonlog.Logger
@@ -100,7 +106,7 @@ func main() {
 		model: data.NewModel(db), // return Model struct which stores all model for dependecy injection
 		db: db,  // filling db instance here pg instance is passed
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender), // providing new instance of mail service for all handlers
-		
+
 	}
 	
 
