@@ -11,7 +11,7 @@ import (
 	"github.com/lib/pq"
 )
 
-
+// struct for saving the details of the movie for storing and retriving from db
 type Movie struct {
 	ID int64			`json:"id"`
 	CreatedAt time.Time	`json:"-"`	// "-" always remove that struct field from the json 
@@ -28,6 +28,8 @@ type MovieModel struct {
 	db *sql.DB
 }
 
+
+// insert data into the db , movies struct -> db
 func (m *MovieModel)Insert(movie *Movie) error{
 	query := `INSERT INTO movies (title, year, runtime, genres)
 		VALUES ($1, $2, $3, $4) RETURNING id, created_at, version`
