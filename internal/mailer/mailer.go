@@ -36,6 +36,7 @@ func New(host string, port int, username, password, sender string) Mailer {
 	}
 }
 
+// reusable send fn which recive recipient template file and data as parameter
 func (m Mailer) Send(recipient, templateFile string, data any) error {
 
 	// this will find and load template file and make a new template 
