@@ -66,7 +66,7 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 
 
 // validating the input token
-func validateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
+func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
 	// check the string is empty or not
 	v.Check(tokenPlaintext != "", "token", "must be provide ")
 	//check the string has 26 byte long or length is 26 
