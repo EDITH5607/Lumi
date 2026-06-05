@@ -5,6 +5,7 @@ import (
 	"Green/internal/validator"
 	"errors"
 	"net/http"
+	"time"
 )
 
 // register user from the input json data
@@ -66,9 +67,21 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+	token,err := app.model.Tokens.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}	
+
+	data := map[string]any{
+		"activationToken":token.Plaintext,
+		"userID":user.ID,
+	}
+
 	app.background(func() {
 		//sending welcome email to the client
-		err = app.mailer.Send(user.Email,"user_welcome.html", user)
+		err = app.mailer.Send(user.Email,"user_welcome.html", data)
 		if err != nil {
 			// we use app.logger.printerror instead of app.serverError
 			// This is because by the time we encounter the errors, the client will probably
