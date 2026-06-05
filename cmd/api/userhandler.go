@@ -103,3 +103,62 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	// if any variable in the app code base if modified by the goroutine the variable in the app code base will reflect it.
 }
+
+
+func(app *application) ActivateUser(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		TokenPlaintext string `json:"token"`
+	}
+
+	err := app.readJSON(w,r,&input)
+	if err!=nil {
+		app.badRequestResponse(w,r,err)
+		return
+	}
+
+	v := validator.New()
+
+	if data.ValidateTokenPlaintext(v,input.TokenPlaintext); !v.Valid() {
+		app.failedValidationResponse(w,r,v.Errors)
+		return
+	}
+
+	user,err := app.model.Users.GetForToken(data.ScopeActivation, input.TokenPlaintext)
+	if err!=nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			v.AddError("token", "invalid or expired activation token")
+			app.failedValidationResponse(w,r,v.Errors)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+	
+	user.Activated = true
+
+	err = app.model.Users.Update(user)
+	if err!=nil {
+		switch{
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w,r)
+		default:
+			app.serverErrorResponse(w,r,err)
+		}
+		return
+	}
+
+
+	err = app.model.Tokens.DeleteAllForUser(user.ID, data.ScopeActivation)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+	err = app.writeJSON(envelope{"user":user}, w, http.StatusOK, nil)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+	}
+
+
+}
