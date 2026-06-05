@@ -125,6 +125,9 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dsn any
 	return  nil
 }
 
+
+/*A badRequestResponse (or more broadly, a 400 Bad Request HTTP response) is used when the server cannot or 
+will not process a request because of something that is perceived to be a client error.*/
 func (app *application)badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	// we use err.Error() because err is a interface we need to call the function to get the err string
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
