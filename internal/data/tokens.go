@@ -25,6 +25,9 @@ type Token struct {
 
 
 // the time.Duration is a struct with nanosecond as int64
+
+// for security related works use crypto/rand as standard practice, dont use math/random it can be predictable
+// use math/random for normal uses which we need faster random no. generation(not security related)
 func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		UserID: userID,
