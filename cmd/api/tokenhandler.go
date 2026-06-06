@@ -5,7 +5,7 @@ import (
 	"Green/internal/validator"
 	"errors"
 	"net/http"
-	"os/user"
+	"time"
 )
 
 func(app *application) createAuthenticationToken(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +47,21 @@ func(app *application) createAuthenticationToken(w http.ResponseWriter, r *http.
 		return
 	}
 
-	
+	if !match {
+		// app.invali
+		return
+	}
+
+	token, err := app.model.Tokens.New(user.ID,24*time.Hour, data.ScopeAuthentication)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+	err = app.writeJSON(envelope{"authentication_token":token}, w,http.StatusCreated, nil)
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+	}
+
 
 }
