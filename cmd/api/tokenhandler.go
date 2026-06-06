@@ -34,7 +34,7 @@ func(app *application) createAuthenticationToken(w http.ResponseWriter, r *http.
 	if err!=nil {
 		switch {
 		case errors.Is(err,data.ErrRecordNotFound):
-			// app.invalid
+			app.invalidCredentialsResponse(w,r)
 		default:
 			app.serverErrorResponse(w,r,err)
 		}
@@ -48,7 +48,7 @@ func(app *application) createAuthenticationToken(w http.ResponseWriter, r *http.
 	}
 
 	if !match {
-		// app.invali
+		app.invalidCredentialsResponse(w,r)
 		return
 	}
 
