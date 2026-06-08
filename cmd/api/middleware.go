@@ -101,3 +101,26 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 		next.ServeHTTP(w,r)
 	})
 }
+
+
+
+
+
+func (app *application) authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		//It tells the cache: "Don't reuse a saved response if the Authorization header is different."
+		// inshort the backend will give different response for different Authorization tokens ,
+		//  otherwise it will provide the same cache for same type of request
+		w.Header().Add("Vary", "Authorization")
+		
+		authorizationHeader := r.Header.Get("Authorization")
+
+		
+
+
+
+
+
+	})
+}
