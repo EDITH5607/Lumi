@@ -32,6 +32,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/users",app.RegisterUser)
 	router.HandlerFunc(http.MethodPut,"/v1/users/activated", app.ActivateUser)
 
+	// authentication token 
+	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthenticationToken)
+
 	// this returns a type  *httprouter.Router but this struct contain 
 	// a serverHTTP method to satisfy the http.Handler interface
 	return app.recoverPanic(app.rateLimit(router))
