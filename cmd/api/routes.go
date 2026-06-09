@@ -37,5 +37,5 @@ func (app *application) routes() http.Handler {
 
 	// this returns a type  *httprouter.Router but this struct contain 
 	// a serverHTTP method to satisfy the http.Handler interface
-	return app.recoverPanic(app.rateLimit(router))
+	return app.recoverPanic(app.rateLimit(app.authenticate(router)))
 }
