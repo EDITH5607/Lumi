@@ -12,6 +12,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+
+
+var AnonymousUser = &User{}
+
+
 // user struct to accept data from the handler to the internal
 type User struct {
 	ID 		int64		`json:"id"`
@@ -39,6 +44,10 @@ type password struct {
 
 }
 
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
 
 func (p *password) Set(plainTextPassword string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(plainTextPassword), 12)
