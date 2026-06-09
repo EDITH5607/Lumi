@@ -1,15 +1,18 @@
 package main
 
 import (
+	"Green/internal/data"
+	"Green/internal/validator"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"golang.org/x/time/rate"
 )
-
 
 // Graceful shutdown when panic happens
 func (app *application)recoverPanic(next http.Handler) http.Handler{
@@ -116,11 +119,41 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		
 		authorizationHeader := r.Header.Get("Authorization")
 
-		
+		if authorizationHeader == "" {
+			r := app.contextSetUser(r, data.AnonymousUser)
+			next.ServeHTTP(w,r)
+			return 
+		}
+
+		headerPart := strings.Split(authorizationHeader, " ")
+		if len(headerPart) != 2 || headerPart[0] != "Bearer" {
+			app.invalidAuthenticationTokenResponse(w,r)
+			return 
+		}
+
+		token := headerPart[1]
+
+		v := validator.New()
+
+		if data.ValidateTokenPlaintext(v,token); !v.Valid() {
+			app.invalidAuthenticationTokenResponse(w,r)
+			return 
+		}
 
 
+		user, err := app.model.Users.GetForToken(data.ScopeAuthentication, token)
+		if err != nil {
+			switch {
+			case errors.Is(err,data.ErrRecordNotFound):
+				app.invalidAuthenticationTokenResponse(w,r) 
+			default:
+				app.serverErrorResponse(w,r,err)
+			}
+			return 
+		}
 
+		r =  app.contextSetUser(r,user)
 
-
+		next.ServeHTTP(w,r)
 	})
 }
