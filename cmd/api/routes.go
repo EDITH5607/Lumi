@@ -19,12 +19,12 @@ func (app *application) routes() http.Handler {
 	//health route for checking the health of the system
 	router.HandlerFunc(http.MethodGet, "/v1/health", app.healthCheckHandler)
 
-	//movie routes
-	router.HandlerFunc(http.MethodGet, "/v1/movies",app.listMovies)
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
-	router.HandlerFunc(http.MethodPatch,"/v1/movies/:id", app.updateMovieHandler)
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
+	//movie routes , required activated user middleware added for permission purpose
+	router.HandlerFunc(http.MethodGet, "/v1/movies",app.requiredActivatedUser(app.listMovies))
+	router.HandlerFunc(http.MethodPost, "/v1/movies", app.requiredActivatedUser(app.createMovieHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.requiredActivatedUser(app.showMovieHandler))
+	router.HandlerFunc(http.MethodPatch,"/v1/movies/:id", app.requiredActivatedUser(app.updateMovieHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.requiredActivatedUser(app.deleteMovieHandler))
 
 
 
