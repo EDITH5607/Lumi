@@ -157,3 +157,49 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		next.ServeHTTP(w,r)
 	})
 }
+
+
+
+
+// here input parameter type as handlerFunc because in the movie routes the handler functions as handlerFunc type 
+// route.HandlerFunc accept handlerFunc type so we return the same type 
+
+
+// used to check the anonymous user 
+func (app *application) requiredAuthenticatedUser(next http.HandlerFunc) http.HandlerFunc {
+
+	return  http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+
+		user := app.contextGetUser(r)
+
+		if user.IsAnonymous() {
+			app.authenticationRequiredResponse(w,r)
+			return 
+		}
+
+		next.ServeHTTP(w,r)
+
+	})
+}
+
+
+func (app *application) requiredActivatedUser(next http.HandlerFunc) http.HandlerFunc{
+
+	fn :=  http.HandlerFunc(func (w http.ResponseWriter, r *http.Request)  {
+		
+
+		user := app.contextGetUser(r)
+
+		if !user.Activated {
+			app.inactiveAccountResponse(w,r)
+			return 
+		}
+
+		next.ServeHTTP(w,r)
+	})
+	
+	// use the same requiredAuthenticatedUser middleware check the authentication before checking the activation
+	// Wrap fn with the requireAuthenticatedUser() middleware before returning it.
+	return app.requiredAuthenticatedUser(fn)
+}
