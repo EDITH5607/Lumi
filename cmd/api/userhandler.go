@@ -68,18 +68,28 @@ func (app *application) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 
+
+	err = app.model.Permissions.AddForUser(user.ID, "movies:read")
+	if err!=nil {
+		app.serverErrorResponse(w,r,err)
+		return
+	}
+
+
 	token,err := app.model.Tokens.New(user.ID, 3*24*time.Hour, data.ScopeActivation)
 	if err!=nil {
 		app.serverErrorResponse(w,r,err)
 		return
 	}	
 
-	data := map[string]any{
-		"activationToken":token.Plaintext,
-		"userID":user.ID,
-	}
+	
 
 	app.background(func() {
+
+		data := map[string]any{
+			"activationToken":token.Plaintext,
+			"userID":user.ID,
+		}
 		//sending welcome email to the client
 		err = app.mailer.Send(user.Email,"user_welcome.html", data)
 		if err != nil {
